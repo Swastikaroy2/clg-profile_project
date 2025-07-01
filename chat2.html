@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Email Support Chatbot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+        integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        :root {
+            --pastel-bg: #f8f8ff;
+            --pastel-header: #b0e2ff;
+            --pastel-message-user: #dcdcdc;
+            --pastel-message-bot: #fff0f5;
+            --pastel-input-bg: #ffffff;
+            --pastel-input-border: #ced4da;
+            --pastel-button: #ffb6c1;
+            --text-color: #333;
+            --accent-color: #6c757d;
+            --font-size-small: 0.85rem;
+            --font-size-normal: 1rem;
+            --font-size-large: 1.15rem;
+        }
+
+        [data-theme="dark"] {
+            --pastel-bg: #121212;
+            --pastel-header: #333333;
+            --pastel-message-user: #424242;
+            --pastel-message-bot: #505050;
+            --pastel-input-bg: #333333;
+            --pastel-input-border: #555555;
+            --text-color: #ffffff;
+            --accent-color: #999999;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--pastel-bg);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .chatbot-container {
+            width: min(95vw, 900px);
+            /* Wider interface */
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            animation: fadeIn 0.7s ease-in-out;
+            background-color: var(--pastel-bg);
+            transition: background-color 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chat-header {
+            background-color: var(--pastel-header);
+            color: var(--text-color);
+            text-align: center;
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .chat-header h2 {
+            margin: 0;
+            font-size: 1.7rem;
+        }
+
+        .settings-button {
+            background-color: transparent;
+            border: none;
+            color: var(--accent-color);
+            cursor: pointer;
+            font-size: 1.4rem;
+            transition: color 0.2s;
+            padding: 0;
+        }
+
+        .settings-button:hover {
+            color: #778899;
+        }
+
+        /* Settings Modal */
+        .settings-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .settings-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: var(--pastel-bg);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: min(80vw, 450px);
+            /* Increased for more options */
+            text-align: center;
+            transition: background-color 0.3s, color 0.3s;
+            max-height: 80vh;
+            /* Limiting height */
+            overflow-y: auto;
+            /* Enable scrolling if content overflows */
+        }
+
+        .settings-content h3 {
+            margin-top: 0;
+            color: var(--text-color);
+            transition: color 0.3s;
+        }
+
+        .setting-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .setting-label {
+            color: var(--text-color);
+            transition: color 0.3s;
+            font-size: var(--font-size-normal);
+            margin-right: 10px;
+            /* Add some spacing */
+            text-align: left;
+            /* Align labels to the left */
+            flex: 1;
+            /* Make labels take up available space */
+        }
+
+        .setting-control {
+            flex: 1;
+            /* Make controls take up available space */
+            text-align: right;
+            /* Align controls to the right */
+        }
+
+        .font-size-select {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid var(--pastel-input-border);
+            background-color: var(--pastel-input-bg);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+            outline: none;
+        }
+
+        .dark-mode-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .dark-mode-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: #2196F3;
+        }
+
+        input:focus+.slider {
+            box-shadow: 0 0 1px #2196F3;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Close Button */
+        .close-button {
+            background-color: var(--pastel-button);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 15px;
+        }
+
+        .close-button:hover {
+            background-color: #ff8eb3;
+        }
+
+        .chat-messages {
+            padding: 20px;
+            height: 400px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.3s;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 18px;
+            border-radius: 20px;
+            max-width: 80%;
+            word-wrap: break-word;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .user-message {
+            background-color: var(--pastel-message-user);
+            color: var(--text-color);
+            align-self: flex-end;
+        }
+
+        .bot-message {
+            background-color: var(--pastel-message-bot);
+            color: var(--text-color);
+            align-self: flex-start;
+        }
+
+        .message img,
+        .message video {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .user-input-area {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .media-button {
+            background-color: transparent;
+            border: none;
+            color: var(--accent-color);
+            cursor: pointer;
+            margin-right: 10px;
+            font-size: 1.4rem;
+            transition: color 0.2s;
+        }
+
+        .media-button:hover {
+            color: #778899;
+        }
+
+        .user-input {
+            flex-grow: 1;
+            padding: 12px 15px;
+            border: 1px solid var(--pastel-input-border);
+            border-radius: 25px;
+            background-color: var(--pastel-input-bg);
+            color: var(--text-color);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s, background-color 0.3s, color 0.3s;
+        }
+
+        .user-input:focus {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        .send-button {
+            background-color: var(--pastel-button);
+            color: white;
+            border: none;
+            padding: 12px 22px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin-left: 10px;
+            font-size: 1rem;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+
+        .send-button:hover {
+            background-color: #ff8eb3;
+        }
+
+        .send-button:active {
+            transform: scale(0.98);
+        }
+
+        .media-input {
+            display: none;
+        }
+
+        .typing-indicator {
+            text-align: center;
+            padding: 10px;
+            color: var(--accent-color);
+            font-style: italic;
+            display: none;
+            transition: color 0.3s;
+        }
+
+        .suggested-questions {
+            padding: 0 20px 20px 20px;
+            text-align: center;
+        }
+
+        .suggested-questions button {
+            background-color: #e6e6fa;
+            border: none;
+            padding: 8px 15px;
+            margin: 5px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.3s;
+        }
+
+        .suggested-questions button:hover {
+            background-color: #d8bfd8;
+        }
+
+        /* Language Select Styles */
+        .language-select {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid var(--pastel-input-border);
+            background-color: var(--pastel-input-bg);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+            outline: none;
+            width: 150px;
+            /* Adjust width as needed */
+        }
+
+        /* Sound Toggle Styles */
+        .sound-toggle {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .sound-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        /*Contact box*/
+        .contact-box {
+            border: 1px solid var(--pastel-input-border);
+            border-radius: 5px;
+            padding: 10px;
+            background-color: var(--pastel-input-bg);
+            color: var(--text-color);
+            width: 100%;
+            text-align: center;
+        }
+
+        /*Text Field */
+        .text-field {
+            width: auto;
+            text-align: center;
+        }
+
+        /*Screenshot Button Style*/
+        .screenshot-button {
+            background-color: var(--pastel-button);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .screenshot-button:hover {
+            background-color: #ff8eb3;
+        }
+
+        /* Style for "Allow Access" prompt message */
+        .access-prompt {
+            font-size: var(--font-size-small);
+            padding: 10px;
+        }
+
+        /* Default slider style */
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        /* Style the round button */
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        /* Style for when input is checked */
+        input:checked+.slider {
+            background-color: #2196F3;
+        }
+
+        /* Style for when input is focused */
+        input:focus+.slider {
+            box-shadow: 0 0 1px #2196F3;
+        }
+
+        /* Move the round button to the right when checked */
+        input:checked+.slider:before {
+            transform: translateX(26px);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="chatbot-container">
+        <div class="chat-header">
+            <h2>Email Support Chatbot BCA22C002</h2>
+            <button class="settings-button"><i class="fas fa-cog"></i></button>
+        </div>
+
+        <div class="chat-messages">
+            <!-- Messages will be added here -->
+        </div>
+
+        <div class="typing-indicator">Typing...</div>
+
+        <div class="suggested-questions">
+            <button data-question="I can't send emails.">Can't send emails</button>
+            <button data-question="I'm not receiving emails.">Not receiving emails</button>
+            <button data-question="How do I change my password?">Change my password</button>
+            <button data-question="What are my security options?">Security options</button>
+            <button data-question="How to recover my account?">Recover Account</button>
+            <button data-question="How to Block a sender?">Block a Sender</button>
+            <button data-question="What is 2FA and how to set it up?">What is 2FA?</button>
+            <button data-question="How do I enable dark mode in email client?">Enable dark mode</button>
+        </div>
+
+        <div class="user-input-area">
+            <button class="media-button"><i class="fas fa-paperclip"></i></button>
+            <input type="file" class="media-input" accept="image/*, video/*">
+            <input type="text" class="user-input" placeholder="Type your message...">
+            <button class="send-button">Send</button>
+        </div>
+
+        <!-- Settings Modal -->
+        <div class="settings-modal">
+            <div class="settings-content">
+                <h3>Settings</h3>
+
+                <div class="setting-option">
+                    <span class="setting-label">Dark Mode:</span>
+                    <div class="setting-control">
+                        <label class="dark-mode-switch">
+                            <input type="checkbox" id="darkModeSwitch">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="setting-option">
+                    <span class="setting-label">Font Size:</span>
+                    <div class="setting-control">
+                        <select class="font-size-select" id="fontSizeSelect">
+                            <option value="small">Small</option>
+                            <option value="normal">Normal</option>
+                            <option value="large">Large</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="setting-option">
+                    <span class="setting-label">Report a problem:</span>
+                    <div class="setting-control">
+                        <button class="report-button" id="reportButton">Report</button>
+                    </div>
+                </div>
+
+                <div class="setting-option">
+                    <span class="setting-label">Change Password:</span>
+                    <div class="setting-control">
+                        <button class="password-button" id="changePasswordButton">Change</button>
+                    </div>
+                </div>
+
+                <div class="setting-option">
+                    <span class="setting-label">Select Language:</span>
+                    <div class="setting-control">
+                        <select class="language-select" id="languageSelect">
+                            <option value="en">English</option>
+                            <option value="fr">French</option>
+                            <option value="es">Spanish</option>
+                            <!-- Add more languages as needed -->
+                        </select>
+                    </div>
+                </div>
+
+                <div class="setting-option">
+                    <span class="setting-label">Details:</span>
+                    <div class="contact-box">
+                        <p>Contact No: <span class="text-field">9875515627</span></p>
+                    </div>
+                </div>
+
+                <div class="setting-option">
+                    <span class="setting-label">Enable Sound:</span>
+                    <div class="setting-control">
+                        <label class="sound-toggle">
+                            <input type="checkbox" id="soundToggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="setting-option">
+                    <span class="setting-label">Take Screenshot:</span>
+                    <div class="setting-control">
+                        <button class="screenshot-button" id="screenshotButton">Take Screenshot</button>
+                    </div>
+                </div>
+
+                <button class="close-button" id="closeButton">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        const chatMessages = document.querySelector('.chat-messages');
+        const userInput = document.querySelector('.user-input');
+        const sendButton = document.querySelector('.send-button');
+        const mediaButton = document.querySelector('.media-button');
+        const mediaInput = document.querySelector('.media-input');
+        const typingIndicator = document.querySelector('.typing-indicator');
+        const suggestedQuestions = document.querySelector('.suggested-questions');
+        const settingsButton = document.querySelector('.settings-button');
+        const settingsModal = document.querySelector('.settings-modal');
+        const settingsContent = document.querySelector('.settings-content');
+
+        //Get elements by ID
+        const darkModeSwitch = document.getElementById('darkModeSwitch');
+        const fontSizeSelect = document.getElementById('fontSizeSelect');
+        const languageSelect = document.getElementById('languageSelect');
+        const soundToggle = document.getElementById('soundToggle');
+        const closeButton = document.getElementById('closeButton');
+        const body = document.body;
+        const reportButton = document.getElementById('reportButton');
+        const changePasswordButton = document.getElementById('changePasswordButton');
+        const screenshotButton = document.getElementById('screenshotButton');
+
+        //Function to simulate Report
+        reportButton.addEventListener('click', function () {
+            alert("Reported! Thanks for Reporting");
+        });
+        //Function to simulate Password Change
+        changePasswordButton.addEventListener('click', function () {
+            alert("You can Change your Password Now!");
+        });
+
+        //Screenshot button listener
+        screenshotButton.addEventListener('click', function () {
+            html2canvas(document.querySelector(".chatbot-container")).then(canvas => {
+                const link = document.createElement("a");
+                link.download = "chatbot-screenshot.png";
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+            });
+        });
+
+
+        function appendMessage(message, type, mediaUrl = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', `${type}-message`, 'animate__animated', 'animate__fadeIn');
+            messageDiv.textContent = message;
+
+            if (mediaUrl) {
+                const mediaElement = mediaUrl.startsWith('data:image') ? document.createElement('img') : document
+                    .createElement('video');
+                mediaElement.src = mediaUrl;
+                mediaElement.controls = mediaUrl.startsWith('data:video');
+                mediaElement.classList.add('message-media');
+                messageDiv.appendChild(mediaElement);
+            }
+
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function botResponse(message) {
+            const lowerCaseMessage = message.toLowerCase();
+
+            // Greetings
+            if (/(hello|hi|hey|good (morning|afternoon|evening))/i.test(lowerCaseMessage)) {
+                return getGreetingResponse();
+            }
+
+            // Farewells
+            if (/(bye|goodbye|see you|later|exit)/i.test(lowerCaseMessage)) {
+                return getFarewellResponse();
+            }
+
+            // Email-Specific Issues
+            if (/can't send|not sending|sending failed/.test(lowerCaseMessage)) {
+                return "Possible reasons include: Network connectivity issues, recipient email address is incorrect, email server is temporarily down or has issues. Check all the things!";
+            }
+            if (/not receiving|not getting|missing emails/.test(lowerCaseMessage)) {
+                return "Confirm that the sender address is correct, check spam and junk mail folders, check email filtering settings. If all are fine, contact email admin support";
+            }
+            if (/account hacked/.test(lowerCaseMessage)) {
+                return "Change password immediately, review recent activity, enable 2FA, scan devices, and contact your email provider.";
+            }
+            if (/create account/.test(lowerCaseMessage)) {
+                return "Visit the email provider's website to create an account.";
+            }
+            if (/forgot password/.test(lowerCaseMessage)) {
+                return "Use the 'Forgot Password' link on the login page.";
+            }
+            if (/change password/.test(lowerCaseMessage)) {
+                return "Access your account settings to change your password.";
+            }
+            if (/update profile/.test(lowerCaseMessage)) {
+                return "Access your account settings to update your profile information.";
+            }
+            if (/account information/.test(lowerCaseMessage)) {
+                return "Log in to your account to view your account information.";
+            }
+
+            // Account Recovery
+            if (/recover account/.test(lowerCaseMessage)) {
+                return "Use recovery options like security questions or secondary email to verify identity. Contact customer support for help if required.";
+            }
+
+            // Block sender
+            if (/block sender/.test(lowerCaseMessage)) {
+                return "Right click the sender and select 'Block sender'. This will prevent the email sender from future emails";
+            }
+
+            // Setting & Features
+            if (/settings/.test(lowerCaseMessage)) {
+                return "Specify settings: forwarding, filtering, vacation responder, or other settings.";
+            }
+            if (/signature/.test(lowerCaseMessage)) {
+                return "Creating or editing your email signature? I can provide guidance.";
+            }
+            if (/attachment/.test(lowerCaseMessage)) {
+                return "Attaching files, sending large attachments, or receiving attachments?";
+            }
+            if (/address/.test(lowerCaseMessage)) {
+                return "Creating a new email address or changing your existing one?";
+            }
+            if (/spam/.test(lowerCaseMessage)) {
+                return "Identifying or blocking spam emails? I can provide tips and guidance.";
+            }
+            if (/phishing/.test(lowerCaseMessage)) {
+                return "Be wary of suspicious senders, check sender address, don't click links, hover over links, be cautious of urgent requests.";
+            }
+
+            // 2FA Explanation
+            if (/what is 2fa/.test(lowerCaseMessage)) {
+                return "2FA is Two-Factor Authentication, an extra layer of security requiring a code from your phone or email in addition to your password.";
+            }
+            // Dark Mode Instructions
+            if (/dark mode/.test(lowerCaseMessage)) {
+                return "Dark mode helps to save energy and to reduce eye strain. Go to settings and select the theme Dark to enable the dark mode";
+            }
+
+            if (/security/.test(lowerCaseMessage)) {
+                return "Use strong passwords, enable 2FA, update software, be cautious of what you share, and avoid suspicious emails.";
+            }
+            if (/client/.test(lowerCaseMessage)) {
+                return "Specify your email client (e.g., Outlook, Gmail, Apple Mail) for more specific assistance.";
+            }
+
+            // General Inquiries
+            if (/contact us/.test(lowerCaseMessage)) {
+                return "You can contact us by phone at [Phone Number] or by email at [Email Address].";
+            }
+            if (/hours/.test(lowerCaseMessage)) {
+                return "Our customer support hours are [Hours of Operation].";
+            }
+            if (/help/.test(lowerCaseMessage)) {
+                return "How can I assist you today? Please be more specific with your request.";
+            }
+
+            // General Responses
+            if (/thank you|thanks/.test(lowerCaseMessage)) {
+                return ["You're welcome!", "No problem, happy to help!"][Math.floor(Math.random() * 2)];
+            }
+            if (/sorry/.test(lowerCaseMessage)) {
+                return "No worries, how can I assist further?";
+            }
+
+            // New feature requests
+            if (/new feature/.test(lowerCaseMessage)) {
+                return "We appreciate your suggestion! Please provide more details so we can consider it.";
+            }
+
+            // Report a bug
+            if (/report a bug/.test(lowerCaseMessage)) {
+                return "Thank you for reporting! Please provide details about the issue.";
+            }
+
+            if (/account suspended/.test(lowerCaseMessage)) {
+                return "Contact support immediately!";
+            }
+
+            // Default
+            return "I'm still learning. Rephrase or explore: Account security, sending/receiving emails, password assistance.";
+        }
+
+        function getGreetingResponse() {
+            return ["Hello!", "Hi there!", "Welcome!", "Good to see you!", "How can I help today?"][Math.floor(Math.random() *
+                5)];
+        }
+
+        function getFarewellResponse() {
+            return ["Goodbye!", "See you later!", "Have a great day!", "Take care."][Math.floor(Math.random() * 4)];
+        }
+
+        function showTypingIndicator() {
+            typingIndicator.style.display = 'block';
+        }
+
+        function hideTypingIndicator() {
+            typingIndicator.style.display = 'none';
+        }
+
+        async function sendMessage() {
+            const messageText = userInput.value.trim();
+            const mediaFile = mediaInput.files[0];
+
+            if (!messageText && !mediaFile) return;
+
+            let mediaUrl = null;
+
+            if (mediaFile) {
+                mediaUrl = await readFileAsDataURL(mediaFile);
+            }
+
+            appendMessage(messageText, 'user', mediaUrl);
+            userInput.value = '';
+            mediaInput.value = '';
+
+            showTypingIndicator();
+            setTimeout(() => {
+                hideTypingIndicator();
+                const response = botResponse(messageText);
+                appendMessage(response, 'bot');
+                if (isSoundEnabled) {
+                    playSound(); // Play sound on new bot message
+                }
+            }, 800);
+        }
+
+        function readFileAsDataURL(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(reader.error);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Dark Mode Functionality
+        let isDarkMode = localStorage.getItem('darkMode') === 'true';
+        body.setAttribute('data-theme', isDarkMode ? 'dark' : '');
+        darkModeSwitch.checked = isDarkMode;
+
+        function toggleDarkMode() {
+            isDarkMode = !isDarkMode;
+            body.setAttribute('data-theme', isDarkMode ? 'dark' : '');
+            localStorage.setItem('darkMode', isDarkMode ? 'true' : 'false');
+        }
+
+        // Font Size Functionality
+        let currentFontSize = localStorage.getItem('fontSize') || 'normal';
+        setFontSize(currentFontSize);
+        fontSizeSelect.value = currentFontSize;
+
+        function setFontSize(size) {
+            localStorage.setItem('fontSize', size);
+            document.documentElement.style.setProperty('--font-size-normal', size === 'small' ? '0.85rem' : size ===
+                'large' ? '1.15rem' : '1rem');
+        }
+
+        // Language Functionality
+        let currentLanguage = localStorage.getItem('language') || 'en';
+        languageSelect.value = currentLanguage;
+
+        function setLanguage(lang) {
+            //This is for illustration only, actually implementing translation would be more complex.
+            localStorage.setItem('language', lang);
+            alert(`Language changed to ${lang}`);
+        }
+
+        // Sound Functionality
+        let isSoundEnabled = localStorage.getItem('soundEnabled') === 'true';
+        soundToggle.checked = isSoundEnabled;
+
+        function toggleSound() {
+            isSoundEnabled = !isSoundEnabled;
+            localStorage.setItem('soundEnabled', isSoundEnabled ? 'true' : 'false');
+        }
+
+        function playSound() {
+            const audio = new Audio(
+            'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3'); // Replace with your desired
+            audio.play();
+        }
+
+        function openSettings() {
+            settingsModal.style.display = 'block';
+        }
+
+        function closeSettings() {
+            settingsModal.style.display = 'none';
+        }
+
+        // Event Listeners
+        sendButton.addEventListener('click', sendMessage);
+        userInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') sendMessage();
+        });
+        mediaButton.addEventListener('click', () => mediaInput.click());
+        suggestedQuestions.addEventListener('click', (event) => {
+            if (event.target.tagName === 'BUTTON') {
+                userInput.value = event.target.dataset.question;
+                sendMessage();
+            }
+        });
+
+        settingsButton.addEventListener('click', openSettings);
+        closeButton.addEventListener('click', closeSettings);
+
+        darkModeSwitch.addEventListener('change', function () {
+            toggleDarkMode();
+        });
+        fontSizeSelect.addEventListener('change', function (event) {
+            setFontSize(event.target.value);
+        });
+        languageSelect.addEventListener('change', function (event) {
+            setLanguage(event.target.value);
+        });
+        soundToggle.addEventListener('change', function () {
+            toggleSound();
+        });
+
+        //Initialization - Load settings on startup
+        body.setAttribute('data-theme', isDarkMode ? 'dark' : ''); //Apply saved darkmode
+        fontSizeSelect.value = currentFontSize; //Apply saved font size
+
+        // Load settings on startup (better practice):
+        window.addEventListener('DOMContentLoaded', (event) => {
+            body.setAttribute('data-theme', isDarkMode ? 'dark' : '');
+            fontSizeSelect.value = currentFontSize;
+            soundToggle.checked = isSoundEnabled; //set sound toggled state to the value we loaded from localstorage on page load
+
+        });
+
+        // Close the modal if the user clicks outside of it.
+        window.addEventListener('click', (event) => {
+            if (event.target == settingsModal) {
+                closeSettings();
+            }
+        });
+    </script>
+
+</body>
+
+</html>
